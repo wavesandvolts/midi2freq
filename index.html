@@ -1,23 +1,124 @@
-<label for="midi-nr">Midi Note Nr</label>
-<input type="number" name="midi-nr" id="midi-nr">
-<label for="midi-name">Note Name</label>
-<input type="text" name="midi-name" id="midi-name">
-<label for="base">Pitch Standart</label>
-<input type="number" name="base" id="base" value="440">
-<label for="freq">Frequency</label>
-<input type="text" name="freq" id="freq">
+<div class="tool--container">
 
-<div class="keys--container">
-  <div class="oct-sel--container">
-    <a href="#" class="oct-sel" id="oct-min">-</a>
-    <span class="oct-cur" id="oct-cur">3</span>
-    <a href="#" class="oct-sel" id="oct-pls">+</a>
+  <div class="setting--container">
+    <div class="setting">
+      <label for="midi-nr">Midi Note Nr</label>
+      <input type="number" name="midi-nr" id="midi-nr">
+    </div>
+    <div class="setting">
+      <label for="midi-name">Note Name</label>
+      <input type="text" name="midi-name" id="midi-name">
+    </div>
+    <div class="setting">
+      <label for="base">Pitch Standart</label>
+      <input type="number" name="base" id="base" value="440">
+    </div>
+    <div class="setting">
+      <label for="freq">Frequency</label>
+      <input type="text" name="freq" id="freq">
+    </div>
   </div>
-
-  <div id="keys"></div>
+  
+  <div class="keys--container">
+    <h3 class="oct--heading">Octave</h3>
+    <div class="oct-sel--container">
+      <a href="#" class="oct-sel" id="oct-min">-</a>
+      <span class="oct-cur" id="oct-cur">3</span>
+      <a href="#" class="oct-sel" id="oct-pls">+</a>
+    </div>
+  
+    <div id="keys"></div>
+  </div>
 </div>
 
+<style>
+  .tool--container *, .tool--container *::before, .tool--container *::after {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+
+  .setting--container {
+    padding: 10px;
+    background: #44475a;
+    border-radius: 3px;
+    
+  }
+  .setting--container .setting {
+    width: 70%;
+    margin: 0 auto;
+    margin-bottom: 15px;
+  }
+  .setting--container input {
+    width: 100%;
+    border-radius: 3px;
+    padding: 2px 5px;
+    color: #44475a;
+  }
+  .setting--container input:focus, .setting--container input:active {
+    box-shadow: none;
+  }
+  .setting--container label {
+    color: #f8f8f2;
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .keys--container {
+    padding: 10px;
+    background: #6272a4;
+    border-radius: 3px;
+  }
+  .oct-sel--container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+  }
+  .keys--container .oct--heading {
+    color: #f8f8f2;
+    text-align: center;
+  }
+  .keys--container .oct-sel, .keys--container .oct-cur {
+    color: #f8f8f2;
+    text-align: center;
+    padding: 10px;
+    font-size: 1.5rem;
+  }
+  .keys--container a {
+    text-decoration: none;
+  }
+
+  #keys {
+    display: flex;
+
+  }
+  .key {
+    height: 400px;
+    background: #f8f8f2;
+    color: #44475a;
+    width: 8.3333%;
+    margin: 0 5px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    box-shadow: -7px 6px 3px;
+  }
+  .key.active, .key.key-black.active {
+    background: #8be9fd;
+    color: #44475a;
+  }
+  .key.key-black {
+    height: 300px;
+    color: #f8f8f2;
+    background: #44475a;
+  }
+
+
+</style>
+
 <script>
+  const notes = "C C# D D# E F F# G G# A A# B";
   window.addEventListener('load', loaded);
   function loaded() {
 
@@ -30,7 +131,8 @@
     const octMin = document.getElementById('oct-min');
     const octPls = document.getElementById('oct-pls');
     const keys = document.getElementById('keys');
-  
+    let allKeys, allOcts;
+
     const midi2Freq = (_midiNr, _base) => {
       return 2**((_midiNr - 69) / 12) * _base;
     };
@@ -41,7 +143,6 @@
   
     }
     const midi2Name = (_midiNr) => {
-      const notes = "C C# D D# E F F# G G# A A# B";
       const [octave, index] = midi2Oct(_midiNr);
       const name = notes.split(' ')[index]+ `${Math.floor(octave)}`;
       return name;
@@ -49,6 +150,14 @@
   
     const setKeys = (_note, _oct) => {
       octave.innerHTML = _oct;
+      for (let i = 0; i < allOcts.length; i++) {
+        allOcts[i].textContent = _oct;
+        if (allKeys[i].classList.contains("active")) {
+          allKeys[i].classList.remove('active');
+        }
+      }
+      allKeys[_note].classList.add('active');
+
     }
   
     const setAll = (val) => {
@@ -67,9 +176,9 @@
     const createKeys = (_parent) => {
       let allKeys = [];
       let allOcts = [];
-      const notes = "C C# D D# E F F# G G# A A# B";
       for (let i = 0; i < 12; i++) {
         const el = document.createElement('a');
+        el.href = "#";
         el.classList.add('key');
         el.classList.add(`key-${i}`);
         el.textContent = notes.split(' ')[i];
@@ -85,7 +194,15 @@
         allKeys.push(el);
         allOcts.push(oct);
       }
+      return [allKeys, allOcts];
     }
+
+
+
+    [allKeys, allOcts] = createKeys(keys);
+
+    // Event Listener
+
   
     midiNr.addEventListener('change', (e) => {
       const val = Math.floor(e.target.value);
@@ -97,6 +214,83 @@
       setAll(val);
     });
 
-    createKeys(keys);
+    octMin.addEventListener('click', (e) => {
+      e.preventDefault();
+      const octNow = parseInt(octave.textContent);
+      // console.log(octNow);
+      let activeI = -1;
+      if (octNow == 0) return;
+      const octNext = octNow - 1;
+      // console.log(octNext);
+      octave.textContent = octNext;
+      for (let i = 0; i < allOcts.length; i++) {
+        allOcts[i].textContent = octNext;
+        if (allKeys[i].classList.contains('active')) {
+          activeI = i;
+        }
+      }
+
+      if (activeI > -1) {
+        const notenr = octNext * 12 + activeI + 12;
+        midiNr.value = notenr;
+        const name = allKeys[activeI].textContent;
+        // console.log(name);
+        midiName.value = name;
+        const baseFreq = base.value || 440;
+        const resFreq = midi2Freq(notenr, baseFreq);
+        freq.value = resFreq;
+      }
+    });
+
+    octPls.addEventListener('click', (e) => {
+      e.preventDefault();
+      const octNow = parseInt(octave.textContent);
+      // console.log(octNow);
+      if (octNow == 10) return;
+      let activeI = -1;
+      const octNext = octNow + 1;
+      // console.log(octNext);
+      octave.textContent = octNext;
+      for (let i = 0; i < allOcts.length; i++) {
+        allOcts[i].textContent = octNext;
+        if (allKeys[i].classList.contains('active')) {
+          activeI = i;
+        }
+      }
+      if (activeI > -1) {
+        const notenr = octNext * 12 + activeI + 12;
+        midiNr.value = notenr;
+        const name = allKeys[activeI].textContent;
+        // console.log(name);
+        midiName.value = name;
+        const baseFreq = base.value || 440;
+        const resFreq = midi2Freq(notenr, baseFreq);
+        freq.value = resFreq;
+      }
+    });
+
+    for (let i = 0; i < allKeys.length; i++) {
+      allKeys[i].addEventListener('click', (e) => {
+        e.preventDefault();
+        const oct = parseInt(octave.textContent);
+        const notenr = oct * 12 + i + 12;
+        midiNr.value = notenr;
+        const name = allKeys[i].textContent;
+        // console.log(name);
+        midiName.value = name;
+        const baseFreq = base.value || 440;
+        const resFreq = midi2Freq(notenr, baseFreq);
+        freq.value = resFreq;
+
+        for (let j = 0; j < allKeys.length; j++) {
+          if (allKeys[j].classList.contains('active')) {
+            allKeys[j].classList.remove('active');
+          }
+        }
+        allKeys[i].classList.add('active');
+
+      });
+    }
+
   }
 </script>
